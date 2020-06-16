@@ -11,7 +11,7 @@ def create_app(config_class=ProductionConfig):
     app.config.from_object(config_class)
     db.init_app(app)
 
-    from app.api import api_bp, errors  # NoQA
+    from app.api import api_bp, errors, require_key  # NoQA
 
     app.register_blueprint(api_bp)
 
@@ -28,5 +28,13 @@ def create_app(config_class=ProductionConfig):
         Render index page
         """
         return render_template('index.html')
+
+    @app.route('/protected', methods=['GET'])
+    @require_key
+    def protect():
+        """
+        Return string after successful authorization
+        """
+        return 'Valid key provided'
 
     return app
