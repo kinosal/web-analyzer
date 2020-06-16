@@ -21,7 +21,7 @@ A simple template to initialize a Python web app with a RESTful API based on the
 └── ...
 ```
 
-The basic app structure includes a User model, api routes with endpoints to retrieve information about users, minimal error handling, a simple index page as well as some database configuration and unit testing setup. The template uses PostgreSQL databases for development and production and SQLite for testing.
+The basic app structure includes a User model, API routes with endpoints to retrieve information about users, minimal error handling, a simple index page as well as some database configuration and unit testing setup. The template uses PostgreSQL databases for development and production and SQLite for testing.
 
 ## Environment
 
@@ -34,7 +34,8 @@ The basic app structure includes a User model, api routes with endpoints to retr
 
 ## Setup
 
-1. Install dependencies
+1. Create virtual environment and install dependencies
+(see more information about Poetry at https://github.com/python-poetry/poetry)
 ```shell
 $ poetry install
 ```
@@ -45,16 +46,14 @@ $ poetry run flask run
 ```
  --> http://127.0.0.1:5000
 
-3. Create database with required access
+3. Create database and add specifications to **.env**
 
-4. Add database specifications to **.env**
-
-5. Initialize DB
+4. Initialize database
 ```shell
 $ poetry run python manage.py db init
 ```
 
-6. Update **migrations/env.py** with database specifications
+5. Update **migrations/env.py** with database specifications
 ```python
 from flask import current_app
 config.set_main_option(
@@ -63,34 +62,30 @@ config.set_main_option(
 target_metadata = current_app.extensions['migrate'].db.metadata
 ```
 
-7. Migrate and upgrade database
+6. Migrate and upgrade database in appropriate environments
 ```shell
 $ poetry run python manage.py db migrate
+$ export FLASK_ENV=development
+$ poetry run python manage.py db upgrade
+$ export FLASK_ENV=production
 $ poetry run python manage.py db upgrade
 ```
 
-8. Test database
-```shell
-$ poetry run flask shell
-```
-```python
-from app import create_app, db
-from app.models.models import User
-app = create_app()
-app.app_context().push()
-db.session.add(User())
-db.session.commit()
-```
-
-9. Test app locally with database
+7. Test app locally with database
 ```shell
 $ poetry run flask run
 ```
  --> http://127.0.0.1:5000/users
 
-10. Create AWS S3 deployment bucket and add specs to **zappa_settings.json**
+8. Run tests
+```shell
+$ poetry run python tests/tests.py
+```
 
-11. Deploy app and test in production
+9. Create AWS S3 deployment bucket and add specifications to **zappa_settings.json**
+(see more information about Zappa at https://github.com/Miserlou/Zappa)
+
+10. Deploy app and test in production
 ```shell
 $ poetry run zappa deploy
 ```
