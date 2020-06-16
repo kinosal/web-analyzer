@@ -45,6 +45,21 @@ class TestSetup(unittest.TestCase):
         response = self.app.test_client().post('/ping')
         self.assertEqual(response.status_code, 200)
 
+    def test_protected(self):
+        """
+        Test that protected resrouce can be accessed with api key
+        """
+        response = self.app.test_client().get('/protected')
+        self.assertEqual(response.status_code, 401)
+
+        key = 'bad_key'
+        response = self.app.test_client().get('/protected', headers={'API_KEY': key})
+        self.assertEqual(response.status_code, 401)
+
+        key = os.environ.get('API_KEY')
+        response = self.app.test_client().get('/protected', headers={'API_KEY': key})
+        self.assertEqual(response.status_code, 200)
+
 
 class TestUser(TestSetup):
     def test_creation(self):
@@ -60,7 +75,8 @@ class TestUser(TestSetup):
         """
         Get user count from /users
         """
-        response = self.app.test_client().get('/users')
+        key = os.environ.get('API_KEY')
+        response = self.app.test_client().get('/users', headers={'API_KEY': key})
         self.assertEqual(response.status_code, 200)
         self.assertIn('0 entries in DB', str(response.data))
 
@@ -70,7 +86,8 @@ class TestUser(TestSetup):
         """
         db.session.add(User())
         db.session.commit()
-        response = self.app.test_client().get('/users/1')
+        key = os.environ.get('API_KEY')
+        response = self.app.test_client().get('/users/1', headers={'API_KEY': key})
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.get_data(as_text=True))
         self.assertEqual(data['id'], 1)
@@ -79,7 +96,8 @@ class TestUser(TestSetup):
         """
         Return error response for missing user
         """
-        response = self.app.test_client().get('/users/1')
+        key = os.environ.get('API_KEY')
+        response = self.app.test_client().get('/users/1', headers={'API_KEY': key})
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.get_data(as_text=True))
         self.assertEqual(data['code'], 404)
