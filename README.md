@@ -82,10 +82,16 @@ $ poetry run flask run
 $ poetry run python tests/tests.py
 ```
 
-9. Create AWS S3 deployment bucket and add specifications to **zappa_settings.json**
+9. Determine test coverage
+```shell
+$ poetry run coverage run -m unittest
+$ poetry run coverage report
+```
+
+10. Create AWS S3 deployment bucket and add specifications to **zappa_settings.json**
 (see more information about Zappa at https://github.com/Miserlou/Zappa)
 
-10. Deploy app and test in production
+11. Deploy app and test in production
 ```shell
 $ poetry run zappa deploy
 ```
