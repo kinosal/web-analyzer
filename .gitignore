@@ -5,3 +5,4 @@ zappa_settings.json
 test.db
 .DS_Store
 /migrations
+.coverage

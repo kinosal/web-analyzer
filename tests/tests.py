@@ -1,8 +1,8 @@
 import os
 import unittest
 import json
-
 import sys
+
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 sys.path.insert(0, BASE_DIR)
 
@@ -36,6 +36,15 @@ class TestSetup(unittest.TestCase):
         response = self.app.test_client().get('/')
         self.assertEqual(response.status_code, 200)
 
+    def test_ping(self):
+        """
+        Test that app can be pinged wth GET and POST
+        """
+        response = self.app.test_client().get('/ping')
+        self.assertEqual(response.status_code, 200)
+        response = self.app.test_client().post('/ping')
+        self.assertEqual(response.status_code, 200)
+
 
 class TestUser(TestSetup):
     def test_creation(self):
@@ -65,6 +74,15 @@ class TestUser(TestSetup):
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.get_data(as_text=True))
         self.assertEqual(data['id'], 1)
+
+    def test_error(self):
+        """
+        Return error response for missing user
+        """
+        response = self.app.test_client().get('/users/1')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.get_data(as_text=True))
+        self.assertEqual(data['code'], 404)
 
 
 if __name__ == '__main__':

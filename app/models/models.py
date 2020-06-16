@@ -11,6 +11,7 @@ class BaseModel(db.Model):
     Base model with created_at and updated_at columns as well as
     a method to return all model properties as dict
     """
+
     __abstract__ = True
 
     created_at = db.Column(db.DateTime, default=db.func.now())
@@ -28,4 +29,5 @@ class User(BaseModel):
     """
     Representation of an initial (user) model
     """
+
     id = db.Column(db.Integer, primary_key=True)

@@ -12,6 +12,7 @@ def create_app(config_class=ProductionConfig):
     db.init_app(app)
 
     from app.api import api_bp, errors  # NoQA
+
     app.register_blueprint(api_bp)
 
     @app.route('/ping', methods=['GET', 'POST'])
