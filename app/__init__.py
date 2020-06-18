@@ -11,7 +11,7 @@ def create_app(config_class=ProductionConfig):
     app.config.from_object(config_class)
     db.init_app(app)
 
-    from app.api import api_bp, errors, require_key  # NoQA
+    from app.api import api_bp, require_key  # NoQA
 
     app.register_blueprint(api_bp)
 

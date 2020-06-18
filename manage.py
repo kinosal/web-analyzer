@@ -7,7 +7,7 @@ import app.config as config
 app = create_app(config.set_config())
 app.app_context().push()
 
-from app.models.models import User
+from app.models.models import User  # NoQa
 
 migrate = Migrate(app, db)
 manager = Manager(app)

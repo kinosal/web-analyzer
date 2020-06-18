@@ -6,9 +6,9 @@ import sys
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 sys.path.insert(0, BASE_DIR)
 
-from app import create_app, db
-from app.config import TestingConfig
-from app.models.models import User
+from app import create_app, db  # NoQA
+from app.config import TestingConfig  # NoQA
+from app.models.models import User  # NoQA
 
 
 class TestSetup(unittest.TestCase):
@@ -47,7 +47,7 @@ class TestSetup(unittest.TestCase):
 
     def test_protected(self):
         """
-        Test that protected resrouce can be accessed with api key
+        Test that protected resource can be accessed with api key
         """
         response = self.app.test_client().get('/protected')
         self.assertEqual(response.status_code, 401)
