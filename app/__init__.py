@@ -1,7 +1,8 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 from flask_cors import CORS, cross_origin
 from flask_sqlalchemy import SQLAlchemy
 from app.config import ProductionConfig
+from werkzeug.exceptions import HTTPException
 
 
 db = SQLAlchemy()
@@ -14,9 +15,22 @@ def create_app(config_class=ProductionConfig):
 
     CORS(app, resources={r'/api/*': {'origins': '*'}})
 
-    from app.api import api_bp, require_key  # NoQA
+    from app.api import require_key
+    from app.api.v1 import api as api_v1
 
-    app.register_blueprint(api_bp, url_prefix='/api')
+    app.register_blueprint(api_v1, url_prefix='/v1')
+
+    @app.errorhandler(HTTPException)
+    def handle_exception(error):
+        """
+        Return JSON instead of HTML for HTTP errors
+        """
+        response = {
+            "code": error.code,
+            "name": error.name,
+            "description": error.description,
+        }
+        return jsonify(response)
 
     @app.route('/', methods=['GET'])
     def root():

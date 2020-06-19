@@ -1,13 +1,14 @@
 """
-Api endpoints using a first (user) model
+Endpoints for API v1
 """
 
 from flask import jsonify
-from app.api import api_bp, require_key
+from app.api import require_key
+from app.api.v1 import api
 from app.models.models import User
 
 
-@api_bp.route('/users', methods=['GET'])
+@api.route('/users', methods=['GET'])
 @require_key
 def get_users() -> str:
     """
@@ -16,7 +17,7 @@ def get_users() -> str:
     return f'{User.query.count()} entries in DB'
 
 
-@api_bp.route('/users/<int:id>', methods=['GET'])
+@api.route('/users/<int:id>', methods=['GET'])
 @require_key
 def get_user(id: int) -> object:
     """

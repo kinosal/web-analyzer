@@ -1,12 +1,6 @@
-"""
-Registration of api on app
-"""
-
 import os
-from flask import Blueprint, request
+from flask import request
 from functools import wraps
-
-api_bp = Blueprint('api', __name__)
 
 
 def require_key(func):
@@ -22,7 +16,3 @@ def require_key(func):
         else:
             return func(*args, **kwargs)
     return func_wrapper
-
-
-# Import from module after Blueprint creation to avoid circularity
-from app.api import user, errors  # NoQA
