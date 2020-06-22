@@ -21,7 +21,7 @@ A simple template to initialize a Python web app with a RESTful API based on the
 └── ...
 ```
 
-The basic app structure includes a User model, API routes with endpoints to retrieve information about users, minimal error handling, a simple index page as well as some database configuration and unit testing setup. The template uses PostgreSQL databases for development and production and SQLite for testing.
+The basic app structure includes a User model, public as well as secured API routes with endpoints to retrieve information about users, minimal error handling, an index page as well as some database configuration and unit testing setup. The template uses PostgreSQL databases for development and production and SQLite for testing.
 
 ## Environment
 
@@ -41,57 +41,118 @@ $ poetry install
 ```
 
 2. Test app locally without database
+(serve from one and access from another terminal window)
 ```shell
 $ poetry run flask run
+Serving Flask app...
 ```
- --> http://127.0.0.1:5000
+```shell
+$ curl http://127.0.0.1:5000/ping
+Server is here
+```
 
-3. Create database and add specifications to **.env**
+3. Add `API_KEY` to `.env` and test access to protected resource (make sure environment variables are loaded from file and restart Flask server)
+```shell
+$ curl --header "API_KEY: ..." http://127.0.0.1:5000/protected
+Valid key provided
+```
 
-4. Initialize database
+4. Create and serve development database and add specifications `.env`
+```
+DEV_DB_USER=
+DEV_DB_PW=
+DEV_DB_URL=
+DEV_DB_NAME=
+```
+
+5. Initialize database
 ```shell
 $ poetry run python manage.py db init
 ```
 
-5. Update **migrations/env.py** with database specifications
-```python
-from flask import current_app
-config.set_main_option(
-    'sqlalchemy.url', current_app.config.get(
-        'SQLALCHEMY_DATABASE_URI').replace('%', '%%'))
-target_metadata = current_app.extensions['migrate'].db.metadata
+6. Update `migrations/env.py` with database specifications
+
+ Replace
+ ```python
+ config.set_main_option(
+     'sqlalchemy.url',
+     str(current_app.extensions['migrate'].db.engine.url).replace('%', '%%'))
+ ```
+ with
+ ```python
+ config.set_main_option(
+     'sqlalchemy.url',
+     current_app.config.get('SQLALCHEMY_DATABASE_URI').replace('%', '%%'))
+ ```
+
+7. Migrate and upgrade development database
+```shell
+$ export FLASK_ENV=development
+$ poetry run python manage.py db migrate
+$ poetry run python manage.py db upgrade
 ```
 
-6. Migrate and upgrade database in appropriate environments
+8. Test app locally with database
 ```shell
-$ poetry run python manage.py db migrate
-$ export FLASK_ENV=development
-$ poetry run python manage.py db upgrade
+$ poetry run flask run
+```
+```shell
+$ curl --header "API_KEY: ..." http://127.0.0.1:5000/v1/users
+0 entries in DB
+```
+
+9. Run tests and determine coverage
+```shell
+$ poetry run coverage run -m unittest
+[...]
+Ran 10 tests
+$ poetry run coverage report
+[...]
+TOTAL 157 0 100%
+```
+
+----
+
+**Production environment**
+
+10. Create and serve production database and add specifications `.env`
+```
+PROD_DB_USER=
+PROD_DB_PW=
+PROD_DB_URL=
+PROD_DB_NAME=
+```
+
+11. Upgrade production database
+```shell
 $ export FLASK_ENV=production
 $ poetry run python manage.py db upgrade
 ```
 
-7. Test app locally with database
-```shell
-$ poetry run flask run
-```
- --> http://127.0.0.1:5000/users
-
-8. Run tests
-```shell
-$ poetry run python tests/tests.py
-```
-
-9. Determine test coverage
-```shell
-$ poetry run coverage run -m unittest
-$ poetry run coverage report
-```
-
-10. Create AWS S3 deployment bucket and add specifications to **zappa_settings.json**
+12. Create AWS S3 deployment bucket and add specifications including AWS environment variables to `zappa_settings.json`
 (see more information about Zappa at https://github.com/Miserlou/Zappa)
+```json
+{
+    "prod": {
+        "app_function": "run.app",
+        "runtime": "python3.8",
+        "aws_region": ,
+        "profile_name": ,
+        "s3_bucket": ,
+        "keep_warm": false,
+        "aws_environment_variables": {
+            "API_KEY": ,
+            "PROD_DB_USER": ,
+            "PROD_DB_PW": ,
+            "PROD_DB_URL": ,
+            "PROD_DB_NAME": ,
+        },
+    }
+}
+```
 
-11. Deploy app and test in production
+
+13. Deploy app and test in production
 ```shell
 $ poetry run zappa deploy
 ```
