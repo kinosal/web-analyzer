@@ -47,7 +47,7 @@ class TestSetup(unittest.TestCase):
 
     def test_protected(self):
         """
-        Test that protected resource can be accessed with api key
+        Test that protected resource can be accessed with api key or secure origin
         """
         response = self.app.test_client().get('/protected')
         self.assertEqual(response.status_code, 401)
@@ -58,6 +58,12 @@ class TestSetup(unittest.TestCase):
 
         key = os.environ.get('API_KEY')
         response = self.app.test_client().get('/protected', headers={'API_KEY': key})
+        self.assertEqual(response.status_code, 200)
+
+        secure_origin = os.environ.get('SECURE_ORIGINS').split(',')[0]
+        response = self.app.test_client().get(
+            '/protected', headers={'Origin': secure_origin}
+        )
         self.assertEqual(response.status_code, 200)
 
 

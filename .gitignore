@@ -4,5 +4,8 @@ __pycache__
 zappa_settings.json
 test.db
 .DS_Store
-/migrations
 .coverage
+/htmlcov
+
+# Remove /migrations from .gitignore after initial migration
+/migrations

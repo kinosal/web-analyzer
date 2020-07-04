@@ -1,5 +1,6 @@
+import os
 from flask import Flask, render_template, jsonify
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from app.config import ProductionConfig
 from werkzeug.exceptions import HTTPException
@@ -13,9 +14,10 @@ def create_app(config_class=ProductionConfig):
     app.config.from_object(config_class)
     db.init_app(app)
 
-    CORS(app, resources={r'/api/*': {'origins': '*'}})
+    secure_origins = os.environ.get('SECURE_ORIGINS').split(',')
+    CORS(app, resources={r'/*': {'origins': secure_origins}})
 
-    from app.api import require_key
+    from app.api import require_auth
     from app.api.v1 import api as api_v1
 
     app.register_blueprint(api_v1, url_prefix='/v1')
@@ -40,7 +42,6 @@ def create_app(config_class=ProductionConfig):
         return render_template('index.html')
 
     @app.route('/ping', methods=['GET', 'POST'])
-    @cross_origin()
     def ping() -> str:
         """
         Return string to show the server is alive
@@ -48,8 +49,7 @@ def create_app(config_class=ProductionConfig):
         return 'Server is here'
 
     @app.route('/protected', methods=['GET'])
-    @cross_origin()
-    @require_key
+    @require_auth
     def protect() -> str:
         """
         Return string after successful authorization
