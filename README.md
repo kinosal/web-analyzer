@@ -10,6 +10,8 @@ A simple template to initialize a Python web app with a RESTful API based on the
 │   │   └── ...
 │   ├── models
 │   │   └── ...
+│   ├── scripts
+│   │   └── ...
 │   ├── templates
 │   │   └── ...
 │   ├── __init__.py
@@ -108,7 +110,7 @@ $ poetry run coverage run -m unittest
 Ran 10 tests
 $ poetry run coverage report
 [...]
-TOTAL 157 0 100%
+TOTAL 164 0 100%
 ```
 
 ----
