@@ -1,3 +1,5 @@
+"""Run Flask app."""
+
 from app import create_app
 import app.config as config
 
