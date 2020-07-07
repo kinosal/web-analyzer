@@ -23,8 +23,9 @@ def create_app(config_class: object):
     app.config.from_object(config_class)
     db.init_app(app)
 
-    secure_origins = environ.get("SECURE_ORIGINS").split(",")
-    CORS(app, resources={r"/*": {"origins": secure_origins}})
+    if environ.get("SECURE_ORIGINS"):
+        secure_origins = environ.get("SECURE_ORIGINS").split(",")
+        CORS(app, resources={r"/*": {"origins": secure_origins}})
 
     from app.api import require_auth
     from app.api.v1 import api as api_v1
