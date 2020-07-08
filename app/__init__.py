@@ -28,9 +28,9 @@ def create_app(config_class: object):
         CORS(app, resources={r"/*": {"origins": secure_origins}})
 
     from app.api import require_auth
-    from app.api.v1 import api as api_v1
+    from app.api.v1 import api_v1
 
-    app.register_blueprint(api_v1, url_prefix="/v1")
+    app.register_blueprint(api_v1)
 
     @app.errorhandler(HTTPException)
     def handle_exception(error):

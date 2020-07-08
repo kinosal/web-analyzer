@@ -57,6 +57,14 @@ class TestSetup(unittest.TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
+    def test_error(self):
+        """Return error response for missing user from API v1."""
+        key = environ.get("API_KEY")
+        response = self.app.test_client().get("/error", headers={"API_KEY": key})
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.get_data(as_text=True))
+        self.assertEqual(data["code"], 404)
+
 
 class TestUser(TestSetup):
     """Tests for user model and respective routes."""
@@ -71,7 +79,7 @@ class TestUser(TestSetup):
     def test_users_route(self):
         """Get user count from API v1."""
         key = environ.get("API_KEY")
-        response = self.app.test_client().get("/v1/users", headers={"API_KEY": key})
+        response = self.app.test_client().get("/v1/users/", headers={"API_KEY": key})
         self.assertEqual(response.status_code, 200)
         self.assertIn("0 entries in DB", str(response.data))
 
@@ -84,14 +92,6 @@ class TestUser(TestSetup):
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.get_data(as_text=True))
         self.assertEqual(data["id"], 1)
-
-    def test_error(self):
-        """Return error response for missing user from API v1."""
-        key = environ.get("API_KEY")
-        response = self.app.test_client().get("/v1/users/1", headers={"API_KEY": key})
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.get_data(as_text=True))
-        self.assertEqual(data["code"], 404)
 
 
 if __name__ == "__main__":

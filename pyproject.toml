@@ -13,6 +13,7 @@ flask-script = "^2.0.6"
 flask-sqlalchemy = "^2.4.3"
 psycopg2-binary = "^2.8.5"
 zappa = "^0.51.0"
+flask-restx = "^0.2.0"
 
 [tool.poetry.dev-dependencies]
 coverage = "^5.1"
