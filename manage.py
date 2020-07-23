@@ -11,8 +11,6 @@ from app import db
 app = create_app(config.set_config())
 app.app_context().push()
 
-from app.models.models import User
-
 migrate = Migrate(app, db)
 manager = Manager(app)
 

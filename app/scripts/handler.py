@@ -17,7 +17,7 @@ Specify in zappa_settings.json:
 from app.scripts.script import script_function
 
 
-def script_handler(event: object, context: object = None) -> None:  # pragma: no cover
+def script_handler(event: object, context: object) -> None:  # pragma: no cover
     """Call script_function from Lambda.
 
     Args:

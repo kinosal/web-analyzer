@@ -39,8 +39,8 @@ class TestingConfig(Config):
     TESTING = True
     DEBUG = True
     basedir = path.dirname(path.dirname(path.abspath(__file__)))
-    path = path.join(basedir, "tests/test.db")
-    SQLALCHEMY_DATABASE_URI = f"sqlite:///{path}"
+    db_path = path.join(basedir, "tests/test.db")
+    SQLALCHEMY_DATABASE_URI = f"sqlite:///{db_path}"
 
 
 def set_config():  # pragma: no cover
