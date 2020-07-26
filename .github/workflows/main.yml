@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checks-out repository under $GITHUB_WORKSPACE, so the job can access it
+    - uses: actions/checkout@v2
+
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install poetry
+        poetry install
+
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are syntax errors or undefined names
+        poetry run flake8 app --count --select=E9,F63,F7,F82 --show-source --statistics
+        poetry run flake8 tests --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit with zero treating all errors as warnings
+        poetry run flake8 app --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
+        poetry run flake8 tests --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
+
+    - name: Run unit tests with coverage
+      env:
+        API_KEY: ${{ secrets.API_KEY }}
+        SECURE_ORIGINS: ${{ secrets.SECURE_ORIGINS }}
+      run: |
+        poetry run coverage run -m unittest
