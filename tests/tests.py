@@ -11,7 +11,7 @@ from app.models.models import User
 
 
 class TestSetup(unittest.TestCase):
-    """Basic unit testing setup and default tests."""
+    """Unit testing setup."""
 
     def setUp(self):
         """Create new app and database for each test."""
@@ -25,6 +25,10 @@ class TestSetup(unittest.TestCase):
         db.session.remove()
         db.drop_all()
         self.app_context.pop()
+
+
+class TestBasic(TestSetup):
+    """Basic default tests."""
 
     def test_root(self):
         """Test that app root responds properly."""
@@ -92,7 +96,3 @@ class TestUser(TestSetup):
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.get_data(as_text=True))
         self.assertEqual(data["id"], 1)
-
-
-if __name__ == "__main__":
-    unittest.main()
