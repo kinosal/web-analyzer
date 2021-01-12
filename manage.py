@@ -11,7 +11,7 @@ from app import db
 app = create_app(config.set_config())
 app.app_context().push()
 
-migrate = Migrate(app, db)
+migrate = Migrate(app, db, compare_type=True)
 manager = Manager(app)
 
 manager.add_command("db", MigrateCommand)
