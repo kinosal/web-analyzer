@@ -1,6 +1,6 @@
 # Web Analyzer (Scalable Scraper) MVP
 
-Flask RESTful API
+Flask RESTful API: https://l3p7kh8vc3.execute-api.eu-west-1.amazonaws.com/prod/v1/
 
 ## Structure
 
