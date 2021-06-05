@@ -1,6 +1,6 @@
-# flask-template
+# Web Analyzer (Scalable Scraper) MVP
 
-A simple template to initialize a Python web app with a RESTful API based on the [Flask framework](https://github.com/pallets/flask)
+Flask RESTful API
 
 ## Structure
 
@@ -23,15 +23,11 @@ A simple template to initialize a Python web app with a RESTful API based on the
 └── ...
 ```
 
-The basic app structure includes a User model, public as well as secured API routes with endpoints to retrieve information about users, minimal error handling, an index page as well as some database configuration and unit testing setup. The template uses PostgreSQL databases for development and production and SQLite for testing.
-
 ## Environment
 
 - Python 3.8
 - Poetry (package manager)
 - Flask (web framework)
-- SQLAlchemy (ORM)
-- Psycopg (PostgreSQL adapter)
 - Zappa (deployment to AWS Lambda)
 
 ## Setup
@@ -59,79 +55,19 @@ $ curl --header "API_KEY: ..." http://127.0.0.1:5000/protected
 Valid key provided
 ```
 
-4. Create and serve development database and add specifications `.env`
-```
-DEV_DB_USER=
-DEV_DB_PW=
-DEV_DB_URL=
-DEV_DB_NAME=
-```
-
-5. Initialize database
-```shell
-$ poetry run python manage.py db init
-```
-
-6. Update `migrations/env.py` with database specifications
-
- Replace
- ```python
- config.set_main_option(
-     'sqlalchemy.url',
-     str(current_app.extensions['migrate'].db.engine.url).replace('%', '%%'))
- ```
- with
- ```python
- config.set_main_option(
-     'sqlalchemy.url',
-     current_app.config.get('SQLALCHEMY_DATABASE_URI').replace('%', '%%'))
- ```
-
-7. Migrate and upgrade development database
-```shell
-$ export FLASK_ENV=development
-$ poetry run python manage.py db migrate
-$ poetry run python manage.py db upgrade
-```
-
-8. Test app locally with database
-```shell
-$ poetry run flask run
-```
-```shell
-$ curl --header "API_KEY: ..." http://127.0.0.1:5000/v1/users
-0 entries in DB
-```
-
-9. Run tests and determine coverage
+4. Run tests and determine coverage
 ```shell
 $ poetry run coverage run -m unittest
 [...]
-Ran 10 tests
 $ poetry run coverage report
 [...]
-TOTAL 164 0 100%
 ```
 
 ----
 
 **Production environment**
 
-10. Create and serve production database and add specifications `.env`
-```
-PROD_DB_USER=
-PROD_DB_PW=
-PROD_DB_URL=
-PROD_DB_NAME=
-```
-
-11. Upgrade production database
-```shell
-$ export FLASK_ENV=production
-$ poetry run python manage.py db upgrade
-```
-
-12. Create AWS S3 deployment bucket and add specifications including AWS environment variables to `zappa_settings.json`
+5. Create AWS S3 deployment bucket and add specifications including AWS environment variables to `zappa_settings.json`
 (see more information about Zappa at https://github.com/Miserlou/Zappa)
 ```json
 {
@@ -144,21 +80,13 @@ $ poetry run python manage.py db upgrade
         "keep_warm": false,
         "aws_environment_variables": {
             "API_KEY": ,
-            "PROD_DB_USER": ,
-            "PROD_DB_PW": ,
-            "PROD_DB_URL": ,
-            "PROD_DB_NAME": ,
         },
     }
 }
 ```
 
 
-13. Deploy app and test in production
+6. Deploy app and test in production
 ```shell
 $ poetry run zappa deploy
 ```
-
-## Contribution
-
-Please submit any [issues](https://github.com/kinosal/flask-template/issues) you have. If you have any ideas how to further improve the template please get in touch or feel free to fork this project and create a pull request with your proposed updates.

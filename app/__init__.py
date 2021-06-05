@@ -6,11 +6,7 @@ from flask import Flask
 from flask import jsonify
 from flask import render_template
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
 from werkzeug.exceptions import HTTPException
-
-
-db = SQLAlchemy()
 
 
 def create_app(config_class: object):
@@ -21,7 +17,6 @@ def create_app(config_class: object):
     """
     app = Flask(__name__)
     app.config.from_object(config_class)
-    db.init_app(app)
 
     if environ.get("SECURE_ORIGINS"):
         secure_origins = environ.get("SECURE_ORIGINS").split(",")
@@ -41,11 +36,6 @@ def create_app(config_class: object):
             "description": error.description,
         }
         return jsonify(response)
-
-    @app.route("/", methods=["GET"])
-    def root():
-        """Render index page."""
-        return render_template("index.html")
 
     @app.route("/ping", methods=["GET", "POST"])
     def ping() -> str:

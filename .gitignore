@@ -6,6 +6,4 @@ test.db
 .DS_Store
 .coverage
 /htmlcov
-
-# Remove /migrations from .gitignore after initial migration
-/migrations
+.mypy_cache
