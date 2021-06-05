@@ -10,7 +10,7 @@ class Metafire:
 
     api_url = "https://data-api-prod.metafire.co/api/Search"
 
-    def find_artist(
+    def find_artists(
         self, search_key: str, limit: int = 10, accuracy: int = 90
     ) -> List[Dict]:
         """Search Metafire for artist from query string."""

@@ -13,6 +13,7 @@ from app.api.v1 import api_v1
 import app.scripts.comprehend as com
 import app.scripts.scrape as scr
 import app.scripts.metafire as met
+import app.scripts.spotify as spo
 
 api = Api(
     api_v1,
@@ -54,11 +55,10 @@ class Text(Resource):
         responses={200: "Success", 401: "Unauthorized"},
         params={"API_KEY": {"in": "header"}},
     )
-    @api.expect(text_request)
+    @api.expect(text_request, validate=True)
     @api.marshal_list_with(entity_response)
     def post(self):
-        content = request.json.get("text")
-        return extract(content)
+        return extract(request.json["text"])
 
 
 @entities.route("/url")
@@ -68,11 +68,10 @@ class Url(Resource):
         responses={200: "Success", 401: "Unauthorized"},
         params={"API_KEY": {"in": "header"}},
     )
-    @api.expect(url_request)
+    @api.expect(url_request, validate=True)
     @api.marshal_list_with(entity_response)
     def post(self):
-        url = request.json.get("url")
-        content = scrape(url)
+        content = scrape(request.json["url"])
         return extract(content)
 
 
@@ -80,9 +79,21 @@ artist = api.namespace(
     "artist", description="extract an artist from plain text or a url"
 )
 
-artist_text_request = api.model("Text Request", {"text": fields.String(required=True)})
+artist_text_request = api.model(
+    "Text Request",
+    {
+        "text": fields.String(required=True),
+        "search": fields.String(enum=["metafire", "spotify"], default="metafire"),
+    },
+)
 
-artist_url_request = api.model("URL Request", {"url": fields.String(required=True)})
+artist_url_request = api.model(
+    "URL Request",
+    {
+        "url": fields.String(required=True),
+        "search": fields.String(enum=["metafire", "spotify"], default="metafire"),
+    },
+)
 
 popularity = api.model("Popularity", {"dsp": fields.String, "value": fields.Integer})
 
@@ -90,8 +101,8 @@ artist_response = api.model(
     "Artist Response",
     {
         "name": fields.String,
-        "popularity": fields.List(fields.Nested(popularity)),
-        "metafireId": fields.String,
+        "popularity": fields.Integer,
+        "external_id": fields.String,
     },
 )
 
@@ -99,13 +110,32 @@ artist_response = api.model(
 def metafire(entities: List[Dict]) -> Dict:
     metafire = met.Metafire()
     for e in entities:
-        artists = metafire.find_artist(e["text"])
-        if not [a for a in artists if a["popularity"]]:
+        artists = metafire.find_artists(e["text"])
+        if not artists:
             continue
-        return sorted(
-            [a for a in artists if a["popularity"]],
-            key=lambda x: x["popularity"][0]["value"],
-        )[-1]
+        artists = [a for a in artists if a["popularity"]]
+        if not artists:
+            continue
+        artist = sorted(artists, key=lambda x: x["popularity"][0]["value"])[-1]
+        return {
+            "name": artist["name"],
+            "popularity": artist["popularity"][0]["value"],
+            "external_id": artist["metafireId"],
+        }
+    return {}
+
+
+def spotify(entities: List[Dict]) -> Dict:
+    spotify = spo.Spotify()
+    for e in entities:
+        artists = spotify.find_artists(e["text"])
+        if not artists:
+            continue
+        return {
+            "name": artists[0]["name"],
+            "popularity": artists[0]["popularity"],
+            "external_id": artists[0]["id"],
+        }
     return {}
 
 
@@ -116,21 +146,19 @@ class ArtistText(Resource):
         responses={200: "Success", 401: "Unauthorized"},
         params={"API_KEY": {"in": "header"}},
     )
-    @api.expect(artist_text_request)
+    @api.expect(artist_text_request, validate=True)
     @api.marshal_with(artist_response)
     def post(self):
-        content = request.json.get("text")
-        entities = extract(content)
-        artist = metafire(entities)
+        entities = extract(request.json["text"])
+        if request.json["search"] == "metafire":
+            artist = metafire(entities)
+        elif request.json["search"] == "spotify":
+            artist = spotify(entities)
 
         if not artist:
             abort(404, "No artist found")
 
-        return {
-            "name": artist["name"],
-            "popularity": artist["popularity"],
-            "metafireId": artist["metafireId"],
-        }
+        return artist
 
 
 @artist.route("/url")
@@ -140,19 +168,17 @@ class ArtistUrl(Resource):
         responses={200: "Success", 401: "Unauthorized"},
         params={"API_KEY": {"in": "header"}},
     )
-    @api.expect(artist_url_request)
+    @api.expect(artist_url_request, validate=True)
     @api.marshal_with(artist_response)
     def post(self):
-        url = request.json.get("url")
-        content = scrape(url)
+        content = scrape(request.json["url"])
         entities = extract(content)
-        artist = metafire(entities)
+        if request.json["search"] == "metafire":
+            artist = metafire(entities)
+        elif request.json["search"] == "spotify":
+            artist = spotify(entities)
 
         if not artist:
             abort(404, "No artist found")
 
-        return {
-            "name": artist["name"],
-            "popularity": artist["popularity"],
-            "metafireId": artist["metafireId"],
-        }
+        return artist
