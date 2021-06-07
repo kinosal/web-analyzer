@@ -107,30 +107,45 @@ artist_response = api.model(
 )
 
 
-def metafire(entities: List[Dict]) -> Dict:
+def metafire(entities: List[Dict], require_popularity: bool = False) -> Dict:
     metafire = met.Metafire()
+
     for e in entities:
         artists = metafire.find_artists(e["text"])
         if not artists:
             continue
-        artists = [a for a in artists if a["popularity"]]
-        if not artists:
-            continue
-        artist = sorted(artists, key=lambda x: x["popularity"][0]["value"])[-1]
+
+        if require_popularity:
+            artists = [a for a in artists if a["popularity"]]
+            if not artists:
+                continue
+            artists = sorted(
+                artists, key=lambda x: x["popularity"][0]["value"], reverse=True
+            )
+
+        print(artists, "\n")  # TODO: Remove after testing
+
         return {
-            "name": artist["name"],
-            "popularity": artist["popularity"][0]["value"],
-            "external_id": artist["metafireId"],
+            "name": artists[0]["name"],
+            "popularity": (
+                artists[0]["popularity"][0]["value"]
+                if artists[0]["popularity"] else None
+            ),
+            "external_id": artists[0]["metafireId"],
         }
     return {}
 
 
 def spotify(entities: List[Dict]) -> Dict:
     spotify = spo.Spotify()
+
     for e in entities:
         artists = spotify.find_artists(e["text"])
         if not artists:
             continue
+
+        print(artists, "\n")  # TODO: Remove after testing
+
         return {
             "name": artists[0]["name"],
             "popularity": artists[0]["popularity"],
@@ -150,6 +165,9 @@ class ArtistText(Resource):
     @api.marshal_with(artist_response)
     def post(self):
         entities = extract(request.json["text"])
+
+        print(entities, "\n")  # TODO: Remove after testing
+
         if request.json["search"] == "metafire":
             artist = metafire(entities)
         elif request.json["search"] == "spotify":
@@ -173,6 +191,9 @@ class ArtistUrl(Resource):
     def post(self):
         content = scrape(request.json["url"])
         entities = extract(content)
+
+        print(entities, "\n")  # TODO: Remove after testing
+
         if request.json["search"] == "metafire":
             artist = metafire(entities)
         elif request.json["search"] == "spotify":
