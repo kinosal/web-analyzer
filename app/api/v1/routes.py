@@ -80,7 +80,7 @@ artist = api.namespace(
 )
 
 artist_text_request = api.model(
-    "Text Request",
+    "Artist Text Request",
     {
         "text": fields.String(required=True),
         "search": fields.String(enum=["metafire", "spotify"], default="metafire"),
@@ -88,14 +88,12 @@ artist_text_request = api.model(
 )
 
 artist_url_request = api.model(
-    "URL Request",
+    "Artist URL Request",
     {
         "url": fields.String(required=True),
         "search": fields.String(enum=["metafire", "spotify"], default="metafire"),
     },
 )
-
-popularity = api.model("Popularity", {"dsp": fields.String, "value": fields.Integer})
 
 artist_response = api.model(
     "Artist Response",
