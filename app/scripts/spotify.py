@@ -36,7 +36,19 @@ class Spotify:
         Returns:
             Spotify API search JSON response
         """
-        return requests.get(
+        artists = requests.get(
             f"{self.api_url}search?q=artist:{search_key}&type=artist",
             headers={"Authorization": f"Bearer {self.auth_token}"},
         ).json()["artists"]["items"]
+
+        if artists:
+            return [
+                {
+                    "name": a["name"],
+                    "popularity": a["popularity"],
+                    "external_id": a["id"],
+                }
+                for a in artists
+            ]
+        else:
+            return []

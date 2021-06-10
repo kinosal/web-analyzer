@@ -11,6 +11,7 @@ import app.config as config
 
 import app.scripts.comprehend as com
 import app.scripts.scrape as scr
+import app.scripts.metafire as met
 import app.scripts.spotify as spo
 
 from app.models.models import Url as UrlModel
@@ -22,9 +23,14 @@ app.app_context().push()
 
 
 class BulkProcessor:
-    scraper = scr.Scraper()
-    comprehender = com.Comprehend()
-    spotify = spo.Spotify()
+    def __init__(self, source: str = "metafire"):
+        self.scraper = scr.Scraper()
+        self.comprehender = com.Comprehend()
+        self.source = source
+        if source == "metafire":
+            self.finder = met.Metafire()
+        elif source == "spotify":
+            self.finder = spo.Spotify()
 
     def process_url(self, url: str) -> str:
         if UrlModel.query.filter(UrlModel.url == url).first():
@@ -38,21 +44,14 @@ class BulkProcessor:
         language = self.comprehender.language(content[:2500])
         entities = self.comprehender.entities(content[:2500], language)
         for e in entities:
-            artists = self.spotify.find_artists(e["text"])
+            artists = self.finder.find_artists(e["text"])
             if artists:
                 break
 
         if not artists:
             return "no artist found"
 
-        artist = {
-            "name": artists[0]["name"],
-            "popularity": artists[0]["popularity"],
-            "external_id": artists[0]["id"],
-        }
-        if artist:
-            save_url(url, "spotify", artist)
-
+        save_url(url, self.source, artists[0])
         time.sleep(1)
         return "created"
 
@@ -75,5 +74,5 @@ class BulkProcessor:
 
 
 if __name__ == '__main__':
-    processor = BulkProcessor()
+    processor = BulkProcessor(sys.argv[3])
     processor.save_from_csv(path=sys.argv[1], limit=int(sys.argv[2]))

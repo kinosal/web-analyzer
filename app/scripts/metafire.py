@@ -11,11 +11,37 @@ class Metafire:
     api_url = "https://data-api-prod.metafire.co/api/Search"
 
     def find_artists(
-        self, search_key: str, limit: int = 10, accuracy: int = 90
+        self,
+        search_key: str,
+        limit: int = 10,
+        accuracy: int = 90,
+        require_popularity: bool = False,
     ) -> List[Dict]:
         """Search Metafire for artist from query string."""
-        response = requests.get(
+        artists = requests.get(
             f"{self.api_url}?DataType=artists&Limit={limit}"
             f"&MinimumMatchingScore={accuracy}&Search={search_key}"
-        )
-        return response.json()["data"]
+        ).json()["data"]
+
+        if require_popularity:
+            artists = [a for a in artists if a["popularity"]]
+            if not artists:
+                return []
+            artists = sorted(
+                artists, key=lambda x: x["popularity"][0]["value"], reverse=True
+            )
+
+        if artists:
+            return [
+                {
+                    "name": a["name"],
+                    "popularity": (
+                        a["popularity"][0]["value"]
+                        if a["popularity"] else None
+                    ),
+                    "external_id": a["metafireId"],
+                }
+                for a in artists
+            ]
+        else:
+            return []

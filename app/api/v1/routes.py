@@ -109,7 +109,7 @@ artist_response = api.model(
 )
 
 
-def metafire(entities: List[Dict], require_popularity: bool = False) -> Dict:
+def metafire(entities: List[Dict]) -> Dict:
     metafire = met.Metafire()
 
     for e in entities:
@@ -117,24 +117,9 @@ def metafire(entities: List[Dict], require_popularity: bool = False) -> Dict:
         if not artists:
             continue
 
-        if require_popularity:
-            artists = [a for a in artists if a["popularity"]]
-            if not artists:
-                continue
-            artists = sorted(
-                artists, key=lambda x: x["popularity"][0]["value"], reverse=True
-            )
-
         print(artists, "\n")  # TODO: Remove after testing
 
-        return {
-            "name": artists[0]["name"],
-            "popularity": (
-                artists[0]["popularity"][0]["value"]
-                if artists[0]["popularity"] else None
-            ),
-            "external_id": artists[0]["metafireId"],
-        }
+        return artists[0]
     return {}
 
 
@@ -148,11 +133,7 @@ def spotify(entities: List[Dict]) -> Dict:
 
         print(artists, "\n")  # TODO: Remove after testing
 
-        return {
-            "name": artists[0]["name"],
-            "popularity": artists[0]["popularity"],
-            "external_id": artists[0]["id"],
-        }
+        return artists[0]
     return {}
 
 
