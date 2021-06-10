@@ -1,12 +1,12 @@
 """Flask app factory."""
 
-from os import environ
-
 from flask import Flask
 from flask import jsonify
-from flask import render_template
-from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
 from werkzeug.exceptions import HTTPException
+
+
+db = SQLAlchemy()
 
 
 def create_app(config_class: object):
@@ -17,10 +17,7 @@ def create_app(config_class: object):
     """
     app = Flask(__name__)
     app.config.from_object(config_class)
-
-    if environ.get("SECURE_ORIGINS"):
-        secure_origins = environ.get("SECURE_ORIGINS").split(",")
-        CORS(app, resources={r"/*": {"origins": secure_origins}})
+    db.init_app(app)
 
     from app.api import require_auth
     from app.api.v1 import api_v1

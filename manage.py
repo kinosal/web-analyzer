@@ -8,6 +8,8 @@ from app import config
 from app import create_app
 from app import db
 
+from app.models.models import Url
+
 app = create_app(config.set_config())
 app.app_context().push()
 

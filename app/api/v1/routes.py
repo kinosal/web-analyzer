@@ -15,6 +15,9 @@ import app.scripts.scrape as scr
 import app.scripts.metafire as met
 import app.scripts.spotify as spo
 
+from app.models.models import Url as UrlModel
+from app.models.models import save_url
+
 api = Api(
     api_v1,
     version="1.0",
@@ -92,6 +95,7 @@ artist_url_request = api.model(
     {
         "url": fields.String(required=True),
         "search": fields.String(enum=["metafire", "spotify"], default="metafire"),
+        "force_rescan": fields.Boolean(default=False),
     },
 )
 
@@ -187,6 +191,17 @@ class ArtistUrl(Resource):
     @api.expect(artist_url_request, validate=True)
     @api.marshal_with(artist_response)
     def post(self):
+        if not request.json["force_rescan"]:
+            url_model = UrlModel.query.filter(
+                UrlModel.url == request.json["url"]
+            ).first()
+            if url_model:
+                return {
+                    "name": url_model.artist_name,
+                    "popularity": url_model.popularity,
+                    "external_id": url_model.external_id,
+                }
+
         content = scrape(request.json["url"])
         entities = extract(content)
 
@@ -199,5 +214,7 @@ class ArtistUrl(Resource):
 
         if not artist:
             abort(404, "No artist found")
+
+        save_url(request.json["url"], request.json["search"], artist)
 
         return artist

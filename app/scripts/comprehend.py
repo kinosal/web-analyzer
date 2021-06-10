@@ -135,7 +135,7 @@ class Comprehend:
         self,
         text: str,
         language: str = "en",
-        types: List["str"] = ["PERSON", "ORGANIZATION", "TITLE"],
+        types: List["str"] = ["PERSON", "ORGANIZATION"],
     ) -> List[Dict]:
         """Detect named entities in text.
 

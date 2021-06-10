@@ -32,6 +32,9 @@ class Scraper:
 
     def request_url(self, url, timeout=10) -> requests.Response:
         """Request URL with agent."""
+        if not "http" in url:
+            return
+
         response = requests.get(
             url,
             headers={"User-Agent": self.agent, "Connection": "close"},
