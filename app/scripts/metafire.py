@@ -23,25 +23,29 @@ class Metafire:
             f"&MinimumMatchingScore={accuracy}&Search={search_key}"
         ).json()["data"]
 
+        if not artists:
+            return []
+
         if require_popularity:
-            artists = [a for a in artists if a["popularity"]]
+            artists = [
+                a for a in artists
+                if a["popularity"] and a["popularity"][0]["value"] > 0
+            ]
             if not artists:
                 return []
-            artists = sorted(
-                artists, key=lambda x: x["popularity"][0]["value"], reverse=True
-            )
 
-        if artists:
-            return [
-                {
-                    "name": a["name"],
-                    "popularity": (
-                        a["popularity"][0]["value"]
-                        if a["popularity"] else None
-                    ),
-                    "external_id": a["metafireId"],
-                }
-                for a in artists
-            ]
-        else:
-            return []
+            # artists = sorted(
+            #     artists, key=lambda a: a["popularity"][0]["value"], reverse=True
+            # )
+
+        return [
+            {
+                "name": a["name"],
+                "popularity": (
+                    a["popularity"][0]["value"]
+                    if a["popularity"] else None
+                ),
+                "external_id": a["metafireId"],
+            }
+            for a in artists
+        ]

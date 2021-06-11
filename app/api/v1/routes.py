@@ -2,6 +2,7 @@
 
 # Import from standard library
 from typing import List, Dict
+import re
 
 # Import from 3rd party libraries
 from flask import request, abort
@@ -47,8 +48,8 @@ def scrape(url: str) -> str:
 
 def extract(content: str) -> List[Dict]:
     comprehender = com.Comprehend()
-    language = comprehender.language(content[:2500])
-    return comprehender.entities(content[:2500], language)
+    language = comprehender.language(content[:2000])
+    return comprehender.entities(content[:2000], language)
 
 
 @entities.route("/text")
@@ -113,7 +114,7 @@ def metafire(entities: List[Dict]) -> Dict:
     metafire = met.Metafire()
 
     for e in entities:
-        artists = metafire.find_artists(e["text"])
+        artists = metafire.find_artists(e["text"], require_popularity=True)
         if not artists:
             continue
 
@@ -127,7 +128,7 @@ def spotify(entities: List[Dict]) -> Dict:
     spotify = spo.Spotify()
 
     for e in entities:
-        artists = spotify.find_artists(e["text"])
+        artists = spotify.find_artists(e["text"], require_popularity=True)
         if not artists:
             continue
 
@@ -184,7 +185,9 @@ class ArtistUrl(Resource):
                 }
 
         content = scrape(request.json["url"])
-        entities = extract(content)
+        url_text = " ".join(re.split('/|-|_', request.json["url"]))
+
+        entities = extract(url_text + " " + content)
 
         print(entities, "\n")  # TODO: Remove after testing
 

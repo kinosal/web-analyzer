@@ -7,7 +7,7 @@ from typing import List, Dict
 
 
 class Spotify:
-    """Manage authorized connection to Spotify."""
+    """Controller for requests to the Spotify Public API."""
 
     def __init__(self, client_id=None, client_secret=None):
         self.client_id = client_id or os.environ["SPOTIFY_CLIENT_ID"]
@@ -27,28 +27,32 @@ class Spotify:
         )
         return auth_response.json()["access_token"]
 
-    def find_artists(self, search_key: str) -> List[Dict]:
-        """Search Spotify API.
-
-        Args:
-            query: Search string
-
-        Returns:
-            Spotify API search JSON response
-        """
+    def find_artists(
+        self, search_key: str, require_popularity: bool = False
+    ) -> List[Dict]:
+        """Search Spotify API."""
         artists = requests.get(
             f"{self.api_url}search?q=artist:{search_key}&type=artist",
             headers={"Authorization": f"Bearer {self.auth_token}"},
         ).json()["artists"]["items"]
 
-        if artists:
-            return [
-                {
-                    "name": a["name"],
-                    "popularity": a["popularity"],
-                    "external_id": a["id"],
-                }
-                for a in artists
-            ]
-        else:
+        if not artists:
             return []
+
+        if require_popularity:
+            artists = [a for a in artists if a["popularity"] > 0]
+            if not artists:
+                return []
+
+            # artists = sorted(
+            #     artists, key=lambda a: a["popularity"], reverse=True
+            # )
+
+        return [
+            {
+                "name": a["name"],
+                "popularity": a["popularity"],
+                "external_id": a["id"],
+            }
+            for a in artists
+        ]

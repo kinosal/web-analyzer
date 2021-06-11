@@ -4,6 +4,8 @@
 import sys
 import csv
 import time
+import re
+from typing import Dict
 
 # Import app factory, modules and models
 from app import create_app
@@ -40,11 +42,18 @@ class BulkProcessor:
         if not response:
             return "bad url"
 
+        url_text = " ".join(re.split('/|-|_', url))
         content = self.scraper.extract_content(response)
-        language = self.comprehender.language(content[:2500])
-        entities = self.comprehender.entities(content[:2500], language)
+        language = self.comprehender.language((url_text + " " + content)[:2000])
+        entities = self.comprehender.entities(
+            (url_text + " " + content)[:2000], language
+        )
+
+        artists = []
         for e in entities:
-            artists = self.finder.find_artists(e["text"])
+            artists = self.finder.find_artists(
+                e["text"], require_popularity=True
+            )
             if artists:
                 break
 
@@ -52,25 +61,50 @@ class BulkProcessor:
             return "no artist found"
 
         save_url(url, self.source, artists[0])
-        time.sleep(1)
+        time.sleep(0.5)
         return "created"
 
     def save_from_csv(self, path: str, limit: int = 10) -> None:
         with open(path, mode="r") as file:
             csv_reader = csv.DictReader(file)
+            domain_counts: Dict[str, int] = {}
             line_count = 0
             created_count = 0
             for row in csv_reader:
-                if line_count > 0:
+                line_count += 1
+
+                if line_count > 1:
+                    try:
+                        domain = row["url"].split("/")[2]
+                    except IndexError:
+                        continue
+
+                    if (
+                        domain in domain_counts.keys()
+                        and domain_counts[domain] > 1.5
+                        * sum(domain_counts.values()) / len(domain_counts.keys())
+                    ):
+                        continue
+
                     response = self.process_url(row["url"])
+
+                    if response in ["created", "exists"]:
+                        if domain in domain_counts.keys():
+                            domain_counts[domain] += 1
+                        else:
+                            domain_counts[domain] = 1
+
                     if response == "created":
                         created_count += 1
-                line_count += 1
-                print(f"Processed {row['url']}")
-                if line_count >= limit:
+                        print(f"Created {row['url']}")
+
+                if sum(domain_counts.values()) >= limit:
                     break
 
-            print(f"Processed {line_count} urls, created {created_count}")
+            print(
+                f"Processed {line_count} urls, created {created_count}, "
+                f"{sum(domain_counts.values())} exist"
+            )
 
 
 if __name__ == '__main__':
