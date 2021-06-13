@@ -42,18 +42,21 @@ class BulkProcessor:
         if not response:
             return "bad url"
 
-        url_text = " ".join(re.split('/|-|_', url))
+        url_text = " ".join(re.split('/|-|_', url.strip("https://")))
         content = self.scraper.extract_content(response)
-        language = self.comprehender.language((url_text + " " + content)[:2000])
-        entities = self.comprehender.entities(
-            (url_text + " " + content)[:2000], language
-        )
+        text = (url_text + " " + content)[:500]
+        language = self.comprehender.language(text)
+        if language in self.comprehender.comprehender_languages:
+            entities = self.comprehender.entities(text, language)
+        elif language in self.comprehender.translater_languages:
+            content = self.comprehender.translate(text, language, "en")
+            entities = self.comprehender.entities(text, "en")
+        else:
+            return "language not supported"
 
         artists = []
         for e in entities:
-            artists = self.finder.find_artists(
-                e["text"], require_popularity=True
-            )
+            artists = self.finder.find_artists(e["text"], score=True)
             if artists:
                 break
 
@@ -61,7 +64,6 @@ class BulkProcessor:
             return "no artist found"
 
         save_url(url, self.source, artists[0])
-        time.sleep(0.5)
         return "created"
 
     def save_from_csv(self, path: str, limit: int = 10) -> None:
@@ -97,6 +99,7 @@ class BulkProcessor:
                     if response == "created":
                         created_count += 1
                         print(f"Created {row['url']}")
+                        time.sleep(0.5)
 
                 if sum(domain_counts.values()) >= limit:
                     break

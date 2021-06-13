@@ -48,8 +48,8 @@ def scrape(url: str) -> str:
 
 def extract(content: str) -> List[Dict]:
     comprehender = com.Comprehend()
-    language = comprehender.language(content[:2000])
-    return comprehender.entities(content[:2000], language)
+    language = comprehender.language(content[:1000])
+    return comprehender.entities(content[:1000], language)
 
 
 @entities.route("/text")
@@ -76,7 +76,10 @@ class Url(Resource):
     @api.marshal_list_with(entity_response)
     def post(self):
         content = scrape(request.json["url"])
-        return extract(content)
+        url_text = " ".join(
+            re.split('/|-|_', request.json["url"].strip("https://"))
+        )
+        return extract(url_text + " " + content)
 
 
 artist = api.namespace(
@@ -110,25 +113,14 @@ artist_response = api.model(
 )
 
 
-def metafire(entities: List[Dict]) -> Dict:
-    metafire = met.Metafire()
+def find(entities: List[Dict], source: str) -> Dict:
+    if source == "metafire":
+        finder = met.Metafire()
+    if source == "spotify":
+        finder = spo.Spotify()
 
     for e in entities:
-        artists = metafire.find_artists(e["text"], require_popularity=True)
-        if not artists:
-            continue
-
-        print(artists, "\n")  # TODO: Remove after testing
-
-        return artists[0]
-    return {}
-
-
-def spotify(entities: List[Dict]) -> Dict:
-    spotify = spo.Spotify()
-
-    for e in entities:
-        artists = spotify.find_artists(e["text"], require_popularity=True)
+        artists = finder.find_artists(e["text"], score=True)
         if not artists:
             continue
 
@@ -149,17 +141,10 @@ class ArtistText(Resource):
     @api.marshal_with(artist_response)
     def post(self):
         entities = extract(request.json["text"])
-
         print(entities, "\n")  # TODO: Remove after testing
-
-        if request.json["search"] == "metafire":
-            artist = metafire(entities)
-        elif request.json["search"] == "spotify":
-            artist = spotify(entities)
-
+        artist = find(entities, request.json["search"])
         if not artist:
             abort(404, "No artist found")
-
         return artist
 
 
@@ -185,16 +170,13 @@ class ArtistUrl(Resource):
                 }
 
         content = scrape(request.json["url"])
-        url_text = " ".join(re.split('/|-|_', request.json["url"]))
-
+        url_text = " ".join(
+            re.split('/|-|_', request.json["url"].strip("https://"))
+        )
         entities = extract(url_text + " " + content)
-
         print(entities, "\n")  # TODO: Remove after testing
 
-        if request.json["search"] == "metafire":
-            artist = metafire(entities)
-        elif request.json["search"] == "spotify":
-            artist = spotify(entities)
+        artist = find(entities, request.json["search"])
 
         if not artist:
             abort(404, "No artist found")

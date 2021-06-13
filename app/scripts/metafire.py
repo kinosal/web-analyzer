@@ -4,6 +4,9 @@
 from typing import List, Dict
 import requests
 
+# Import third party libraries
+from fuzzywuzzy import fuzz
+
 
 class Metafire:
     """Controller for requests to the Metafire Search API."""
@@ -15,7 +18,7 @@ class Metafire:
         search_key: str,
         limit: int = 10,
         accuracy: int = 90,
-        require_popularity: bool = False,
+        score: bool = True,
     ) -> List[Dict]:
         """Search Metafire for artist from query string."""
         artists = requests.get(
@@ -26,17 +29,16 @@ class Metafire:
         if not artists:
             return []
 
-        if require_popularity:
-            artists = [
-                a for a in artists
-                if a["popularity"] and a["popularity"][0]["value"] > 0
-            ]
-            if not artists:
-                return []
-
-            # artists = sorted(
-            #     artists, key=lambda a: a["popularity"][0]["value"], reverse=True
-            # )
+        if score:
+            artists = sorted(
+                [a for a in artists if a["popularity"] > 0],
+                key=lambda a: (
+                    (len(artists) - artists.index(a)) * 100/len(artists)
+                    + a["popularity"]
+                    + fuzz.ratio(search_key, a["name"])
+                ),
+                reverse=True,
+            )
 
         return [
             {

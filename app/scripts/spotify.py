@@ -5,6 +5,8 @@ import os
 import requests
 from typing import List, Dict
 
+# Import third party libraries
+from fuzzywuzzy import fuzz
 
 class Spotify:
     """Controller for requests to the Spotify Public API."""
@@ -28,7 +30,9 @@ class Spotify:
         return auth_response.json()["access_token"]
 
     def find_artists(
-        self, search_key: str, require_popularity: bool = False
+        self,
+        search_key: str,
+        score: bool = True,
     ) -> List[Dict]:
         """Search Spotify API."""
         artists = requests.get(
@@ -39,14 +43,16 @@ class Spotify:
         if not artists:
             return []
 
-        if require_popularity:
-            artists = [a for a in artists if a["popularity"] > 0]
-            if not artists:
-                return []
-
-            # artists = sorted(
-            #     artists, key=lambda a: a["popularity"], reverse=True
-            # )
+        if score:
+            artists = sorted(
+                [a for a in artists if a["popularity"] > 0],
+                key=lambda a: (
+                    (len(artists) - artists.index(a)) * 100/len(artists)
+                    + a["popularity"]
+                    + fuzz.ratio(search_key, a["name"])
+                ),
+                reverse=True,
+            )
 
         return [
             {

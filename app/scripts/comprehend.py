@@ -105,6 +105,13 @@ class Comprehend:
         "es",
     ]
 
+    blocked_entities = [
+        "facebook",
+        "twitter",
+        "google",
+        "youtube",
+    ]
+
     def language(self, text: str) -> str:
         """Detect language of text.
 
@@ -163,18 +170,14 @@ class Comprehend:
             "Entities"
         ]
 
-        num_entities = len(entities)
-        # entity_counts: Dict[str, int] = {}
         entity_weights: Dict[str, int] = {}
         for i, e in enumerate(entities):
-            if e["Type"] in types:
+            if e["Type"] in types and e["Text"].lower() not in self.blocked_entities:
                 key = json.dumps({"type": e["Type"], "text": e["Text"].lower()})
                 if key in entity_weights.keys():
-                    # entity_counts[key] += 1
-                    entity_weights[key] += num_entities - i
+                    entity_weights[key] += len(entities) - i
                 else:
-                    # entity_counts[key] = 1
-                    entity_weights[key] = num_entities - i
+                    entity_weights[key] = len(entities) - i
 
         return sorted(
             [{**json.loads(k), "weight": v} for k, v in entity_weights.items()],
