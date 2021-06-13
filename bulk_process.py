@@ -42,9 +42,9 @@ class BulkProcessor:
         if not response:
             return "bad url"
 
-        url_text = " ".join(re.split('/|-|_', url.strip("https://")))
+        path = " ".join(re.split('/|-|_', url)[3:])
         content = self.scraper.extract_content(response)
-        text = (url_text + " " + content)[:500]
+        text = (path + " " + content)[:1000]
         language = self.comprehender.language(text)
         if language in self.comprehender.comprehender_languages:
             entities = self.comprehender.entities(text, language)

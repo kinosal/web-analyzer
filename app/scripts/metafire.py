@@ -31,11 +31,11 @@ class Metafire:
 
         if score:
             artists = sorted(
-                [a for a in artists if a["popularity"] > 0],
+                [a for a in artists if a["popularity"] and a["popularity"][0]["value"] > 0],
                 key=lambda a: (
                     (len(artists) - artists.index(a)) * 100/len(artists)
-                    + a["popularity"]
-                    + fuzz.ratio(search_key, a["name"])
+                    + a["popularity"][0]["value"]
+                    + fuzz.ratio(search_key, a["name"]) * 2
                 ),
                 reverse=True,
             )

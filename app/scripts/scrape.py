@@ -46,5 +46,10 @@ class Scraper:
     @staticmethod
     def extract_content(html: requests.Response) -> str:
         """Extract plain text from html."""
-        soup = BeautifulSoup(html.text, "html.parser").text
-        return " ".join(soup.split())
+        soup = BeautifulSoup(html.text, "html.parser")
+        elements = [
+            h.text for h in soup.find_all(["title", "h1", "h2", "strong", "b"])
+            if len(h.text) > 1
+        ]
+        full_text = soup.text
+        return " ".join(elements + full_text.split())

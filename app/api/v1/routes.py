@@ -125,7 +125,6 @@ def find(entities: List[Dict], source: str) -> Dict:
             continue
 
         print(artists, "\n")  # TODO: Remove after testing
-
         return artists[0]
     return {}
 
@@ -170,10 +169,10 @@ class ArtistUrl(Resource):
                 }
 
         content = scrape(request.json["url"])
-        url_text = " ".join(
-            re.split('/|-|_', request.json["url"].strip("https://"))
+        path = " ".join(
+            re.split('/|-|_', request.json["url"])[3:]
         )
-        entities = extract(url_text + " " + content)
+        entities = extract(path + " " + content)
         print(entities, "\n")  # TODO: Remove after testing
 
         artist = find(entities, request.json["search"])

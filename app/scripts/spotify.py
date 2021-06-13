@@ -49,7 +49,7 @@ class Spotify:
                 key=lambda a: (
                     (len(artists) - artists.index(a)) * 100/len(artists)
                     + a["popularity"]
-                    + fuzz.ratio(search_key, a["name"])
+                    + fuzz.ratio(search_key, a["name"]) * 2
                 ),
                 reverse=True,
             )
