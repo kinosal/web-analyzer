@@ -2,7 +2,7 @@
 
 from sqlalchemy.exc import IntegrityError
 
-from typing import Dict
+from typing import List, Dict
 from app import db
 
 
@@ -30,28 +30,34 @@ class BaseModel(db.Model):
 
 class Url(BaseModel):
     url = db.Column(db.String, unique=True, nullable=False)
+    content = db.Column(db.String)
+    entities_response = db.Column(db.JSON)
+    artists_response = db.Column(db.JSON)
     artist_name = db.Column(db.String)
     artist_source = db.Column(db.String)
     external_id = db.Column(db.String)
     popularity = db.Column(db.Integer)
 
 
-def save_url(url: str, source: str, artist: Dict) -> None:
-    url_model = Url(
-        url=url,
-        artist_name=artist["name"],
-        artist_source=source,
-        external_id=artist["external_id"],
-        popularity=artist["popularity"],
-    )
-    db.session.add(url_model)
+def save_url(
+    url: str,
+    content: str,
+    entities: List[Dict],
+    artists: List[Dict],
+    source: str,
+) -> None:
+    url_model = Url(url=url)
     try:
+        db.session.add(url_model)
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        url_model = Url.query.filter(Url.url == url).first()
-        url_model.artist_name = artist["name"]
-        url_model.artist_source = source
-        url_model.external_id = artist["external_id"]
-        url_model.popularity = artist["popularity"]
-        db.session.commit()
+    url_model = Url.query.filter(Url.url == url).first()
+    url_model.artist_name = artists[0]["name"] if artists else None
+    url_model.artist_source = source
+    url_model.external_id = artists[0]["external_id"] if artists else None
+    url_model.popularity = artists[0]["popularity"] if artists else None
+    url_model.content = content
+    url_model.entities_response = entities
+    url_model.artists_response = artists
+    db.session.commit()

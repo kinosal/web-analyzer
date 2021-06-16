@@ -113,7 +113,7 @@ artist_response = api.model(
 )
 
 
-def find(entities: List[Dict], source: str) -> Dict:
+def find(entities: List[Dict], source: str) -> List[Dict]:
     if source == "metafire":
         finder = met.Metafire()
     if source == "spotify":
@@ -125,8 +125,8 @@ def find(entities: List[Dict], source: str) -> Dict:
             continue
 
         print(artists, "\n")  # TODO: Remove after testing
-        return artists[0]
-    return {}
+        return artists
+    return []
 
 
 @artist.route("/text")
@@ -141,10 +141,10 @@ class ArtistText(Resource):
     def post(self):
         entities = extract(request.json["text"])
         print(entities, "\n")  # TODO: Remove after testing
-        artist = find(entities, request.json["search"])
-        if not artist:
+        artists = find(entities, request.json["search"])
+        if not artists:
             abort(404, "No artist found")
-        return artist
+        return artist[0]
 
 
 @artist.route("/url")
@@ -175,11 +175,17 @@ class ArtistUrl(Resource):
         entities = extract(path + " " + content)
         print(entities, "\n")  # TODO: Remove after testing
 
-        artist = find(entities, request.json["search"])
+        artists = find(entities, request.json["search"])
 
-        if not artist:
+        if not artists:
             abort(404, "No artist found")
 
-        save_url(request.json["url"], request.json["search"], artist)
+        save_url(
+            request.json["url"],
+            content,
+            entities,
+            artists,
+            request.json["search"],
+        )
 
-        return artist
+        return artists[0]

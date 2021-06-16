@@ -52,6 +52,7 @@ class BulkProcessor:
             content = self.comprehender.translate(text, language, "en")
             entities = self.comprehender.entities(text, "en")
         else:
+            save_url(url, content, entities, [], self.source)
             return "language not supported"
 
         artists = []
@@ -61,9 +62,10 @@ class BulkProcessor:
                 break
 
         if not artists:
+            save_url(url, content, entities, artists, self.source)
             return "no artist found"
 
-        save_url(url, self.source, artists[0])
+        save_url(url, content, entities, artists, self.source)
         return "created"
 
     def save_from_csv(self, path: str, limit: int = 10) -> None:
@@ -74,6 +76,8 @@ class BulkProcessor:
             created_count = 0
             for row in csv_reader:
                 line_count += 1
+
+                print(f"Processing {row['url']}")
 
                 if line_count > 1:
                     try:
@@ -98,7 +102,6 @@ class BulkProcessor:
 
                     if response == "created":
                         created_count += 1
-                        print(f"Created {row['url']}")
                         time.sleep(0.5)
 
                 if sum(domain_counts.values()) >= limit:
@@ -110,6 +113,10 @@ class BulkProcessor:
             )
 
 
+def bulk_process(path: str, limit: int, source: str):
+    processor = BulkProcessor(source)
+    processor.save_from_csv(path, limit)
+
+
 if __name__ == '__main__':
-    processor = BulkProcessor(sys.argv[3])
-    processor.save_from_csv(path=sys.argv[1], limit=int(sys.argv[2]))
+    bulk_process(sys.argv[1], int(sys.argv[2]), sys.argv[3])
