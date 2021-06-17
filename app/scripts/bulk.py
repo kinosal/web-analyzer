@@ -1,7 +1,6 @@
 "Process list of urls and save corresponding artists."
 
 # Import from standard library
-import sys
 import csv
 import time
 import re
@@ -23,7 +22,6 @@ from app.models.models import save_url
 app = create_app(config.set_config())
 app.app_context().push()
 
-
 class BulkProcessor:
     def __init__(self, source: str = "metafire"):
         self.scraper = scr.Scraper()
@@ -44,7 +42,7 @@ class BulkProcessor:
 
         path = " ".join(re.split('/|-|_', url)[3:])
         content = self.scraper.extract_content(response)
-        text = (path + " " + content)[:1000]
+        text = (path + " " + content)
         language = self.comprehender.language(text)
         if language in self.comprehender.comprehender_languages:
             entities = self.comprehender.entities(text, language)
@@ -76,33 +74,34 @@ class BulkProcessor:
             created_count = 0
             for row in csv_reader:
                 line_count += 1
-
                 print(f"Processing {row['url']}")
 
-                if line_count > 1:
-                    try:
-                        domain = row["url"].split("/")[2]
-                    except IndexError:
-                        continue
+                try:
+                    domain = row["url"].split("/")[2]
+                except IndexError:
+                    print("invalid url")
+                    continue
 
-                    if (
-                        domain in domain_counts.keys()
-                        and domain_counts[domain] > 1.5
-                        * sum(domain_counts.values()) / len(domain_counts.keys())
-                    ):
-                        continue
+                if (
+                    domain in domain_counts.keys()
+                    and domain_counts[domain] > 1.5
+                    * sum(domain_counts.values()) / len(domain_counts.keys())
+                ):
+                    print("skipping to balance domains")
+                    continue
 
-                    response = self.process_url(row["url"])
+                response = self.process_url(row["url"])
+                print(response)
 
-                    if response in ["created", "exists"]:
-                        if domain in domain_counts.keys():
-                            domain_counts[domain] += 1
-                        else:
-                            domain_counts[domain] = 1
+                if response in ["created", "exists"]:
+                    if domain in domain_counts.keys():
+                        domain_counts[domain] += 1
+                    else:
+                        domain_counts[domain] = 1
 
-                    if response == "created":
-                        created_count += 1
-                        time.sleep(0.5)
+                if response == "created":
+                    created_count += 1
+                    time.sleep(0.5)
 
                 if sum(domain_counts.values()) >= limit:
                     break
@@ -116,7 +115,3 @@ class BulkProcessor:
 def bulk_process(path: str, limit: int, source: str):
     processor = BulkProcessor(source)
     processor.save_from_csv(path, limit)
-
-
-if __name__ == '__main__':
-    bulk_process(sys.argv[1], int(sys.argv[2]), sys.argv[3])

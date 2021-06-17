@@ -1,6 +1,7 @@
 """AWS Comprehend connectors."""
 
 # Import from standard library
+import os
 from typing import List, Dict
 import json
 from operator import itemgetter
@@ -112,6 +113,8 @@ class Comprehend:
         "youtube",
     ]
 
+    character_limit = 1000
+
     def language(self, text: str) -> str:
         """Detect language of text.
 
@@ -120,9 +123,9 @@ class Comprehend:
         Returns:
             Language code for text
         """
-        return self.comprehender.detect_dominant_language(Text=text)["Languages"][0][
-            "LanguageCode"
-        ]
+        return self.comprehender.detect_dominant_language(
+            Text=text[:self.character_limit]
+        )["Languages"][0]["LanguageCode"]
 
     def translate(self, text: str, source: str, target: str = "en") -> str:
         """Translate text.
@@ -135,7 +138,9 @@ class Comprehend:
             Translated text
         """
         return self.translater.translate_text(
-            Text=text, SourceLanguageCode=source, TargetLanguageCode=target
+            Text=text[:self.character_limit],
+            SourceLanguageCode=source,
+            TargetLanguageCode=target
         )["TranslatedText"]
 
     def entities(
@@ -166,9 +171,9 @@ class Comprehend:
                 "OTHER",
             ]
 
-        entities = self.comprehender.detect_entities(Text=text, LanguageCode=language)[
-            "Entities"
-        ]
+        entities = self.comprehender.detect_entities(
+            Text=text[:self.character_limit], LanguageCode=language
+        )["Entities"]
 
         entity_weights: Dict[str, int] = {}
         for i, e in enumerate(entities):

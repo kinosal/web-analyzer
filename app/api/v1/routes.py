@@ -48,8 +48,8 @@ def scrape(url: str) -> str:
 
 def extract(content: str) -> List[Dict]:
     comprehender = com.Comprehend()
-    language = comprehender.language(content[:1000])
-    return comprehender.entities(content[:1000], language)
+    language = comprehender.language(content)
+    return comprehender.entities(content, language)
 
 
 @entities.route("/text")
