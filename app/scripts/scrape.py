@@ -35,13 +35,16 @@ class Scraper:
         if not "http" in url:
             return
 
-        response = requests.get(
-            url,
-            headers={"User-Agent": self.agent, "Connection": "close"},
-            timeout=timeout,
-        )
-        self.switch_agent()
-        return response
+        try:
+            response = requests.get(
+                url,
+                headers={"User-Agent": self.agent, "Connection": "close"},
+                timeout=timeout,
+            )
+            self.switch_agent()
+            return response
+        except requests.exceptions.ConnectTimeout:
+            return
 
     @staticmethod
     def extract_content(html: requests.Response) -> str:

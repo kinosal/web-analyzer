@@ -108,9 +108,14 @@ class Comprehend:
 
     blocked_entities = [
         "facebook",
+        "instagram"
         "twitter",
         "google",
         "youtube",
+        "spotify",
+        "apple",
+        "soundcloud",
+        "amazon",
     ]
 
     character_limit = 1000
