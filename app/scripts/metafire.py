@@ -35,7 +35,7 @@ class Metafire:
                 key=lambda a: (
                     (len(artists) - artists.index(a)) * 100/len(artists)
                     + a["popularity"][0]["value"]
-                    + fuzz.ratio(search_key, a["name"]) * 2
+                    + fuzz.ratio(search_key, a["name"])
                 ),
                 reverse=True,
             )

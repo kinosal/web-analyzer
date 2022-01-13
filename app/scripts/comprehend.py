@@ -116,6 +116,7 @@ class Comprehend:
         "apple",
         "soundcloud",
         "amazon",
+        "rolling stone"
     ]
 
     character_limit = 1000
