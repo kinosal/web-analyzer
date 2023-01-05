@@ -144,7 +144,7 @@ class ArtistText(Resource):
         artists = find(entities, request.json["search"])
         if not artists:
             abort(404, "No artist found")
-        return artist[0]
+        return artists[0]
 
 
 @artist.route("/url")

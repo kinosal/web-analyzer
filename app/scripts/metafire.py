@@ -5,7 +5,7 @@ from typing import List, Dict
 import requests
 
 # Import third party libraries
-from fuzzywuzzy import fuzz
+from thefuzz import fuzz
 
 
 class Metafire:

@@ -6,7 +6,7 @@ import requests
 from typing import List, Dict
 
 # Import third party libraries
-from fuzzywuzzy import fuzz
+from thefuzz import fuzz
 
 class Spotify:
     """Controller for requests to the Spotify Public API."""
