@@ -43,17 +43,17 @@ class TestBasic(TestSetup):
         self.assertEqual(response.status_code, 401)
 
         key = "bad_key"
-        response = self.app.test_client().get("/protected", headers={"API_KEY": key})
+        response = self.app.test_client().get("/protected", headers={"x-api-key": key})
         self.assertEqual(response.status_code, 401)
 
         key = environ.get("API_KEY")
-        response = self.app.test_client().get("/protected", headers={"API_KEY": key})
+        response = self.app.test_client().get("/protected", headers={"x-api-key": key})
         self.assertEqual(response.status_code, 200)
 
     def test_error(self):
         """Return error response for missing user from API v1."""
         key = environ.get("API_KEY")
-        response = self.app.test_client().get("/error", headers={"API_KEY": key})
+        response = self.app.test_client().get("/error", headers={"x-api-key": key})
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.get_data(as_text=True))
         self.assertEqual(data["code"], 404)
