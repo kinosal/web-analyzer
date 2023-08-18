@@ -57,7 +57,7 @@ class Text(Resource):
     @require_auth
     @api.doc(
         responses={200: "Success", 401: "Unauthorized"},
-        params={"API_KEY": {"in": "header"}},
+        params={"x-api-key": {"in": "header"}},
     )
     @api.expect(text_request, validate=True)
     @api.marshal_list_with(entity_response)
@@ -70,7 +70,7 @@ class Url(Resource):
     @require_auth
     @api.doc(
         responses={200: "Success", 401: "Unauthorized"},
-        params={"API_KEY": {"in": "header"}},
+        params={"x-api-key": {"in": "header"}},
     )
     @api.expect(url_request, validate=True)
     @api.marshal_list_with(entity_response)
@@ -134,7 +134,7 @@ class ArtistText(Resource):
     @require_auth
     @api.doc(
         responses={200: "Success", 401: "Unauthorized"},
-        params={"API_KEY": {"in": "header"}},
+        params={"x-api-key": {"in": "header"}},
     )
     @api.expect(artist_text_request, validate=True)
     @api.marshal_with(artist_response)
@@ -152,7 +152,7 @@ class ArtistUrl(Resource):
     @require_auth
     @api.doc(
         responses={200: "Success", 401: "Unauthorized"},
-        params={"API_KEY": {"in": "header"}},
+        params={"x-api-key": {"in": "header"}},
     )
     @api.expect(artist_url_request, validate=True)
     @api.marshal_with(artist_response)

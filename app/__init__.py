@@ -39,7 +39,7 @@ def create_app(config_class: object):
         """Return string to show the server is alive."""
         return "Server is here"
 
-    @app.route("/protected", methods=["GET"])
+    @app.route("/protected", methods=["GET", "POST"])
     @require_auth
     def protect() -> str:
         """Return string after successful authorization."""

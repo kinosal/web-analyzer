@@ -10,9 +10,9 @@ def require_auth(func):
 
     @wraps(func)
     def func_wrapper(*args, **kwargs):
-        if "API_KEY" not in request.headers:
+        if "x-api-key" not in request.headers:
             return "Credentials missing", 401
-        if request.headers["API_KEY"] != environ.get("API_KEY"):
+        if request.headers["x-api-key"] != environ.get("API_KEY"):
             return "Credentials not valid", 401
         return func(*args, **kwargs)
 
