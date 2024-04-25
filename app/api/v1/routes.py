@@ -180,12 +180,13 @@ class ArtistUrl(Resource):
         if not artists:
             abort(404, "No artist found")
 
-        save_url(
-            request.json["url"],
-            content,
-            entities,
-            artists,
-            request.json["search"],
-        )
+        # TODO: Connect to database
+        # save_url(
+        #     request.json["url"],
+        #     content,
+        #     entities,
+        #     artists,
+        #     request.json["search"],
+        # )
 
         return artists[0]
